@@ -1,39 +1,21 @@
 $(document).ready(function() {
     const productList = $('#productList');
-    let productsData = [];
-
-    $.getJSON('./products.json', function(data) {
-      productsData = data;
-      displayProducts();
-    });
 
     $('#productForm').submit(function(event) {
       event.preventDefault();
 
-      const productName = $('#productName').val();
-      const quantity = parseInt($('#quantity').val());
-      const price = parseFloat($('#price').val());
-      const datetime = new Date().toISOString();
-      const totalValue = quantity * price;
-
-      const product = {
-        productName,
-        quantity,
-        price,
-        datetime,
-        totalValue
-      };
-
-      productsData.push(product);
-
+      const formData = $(this).serialize();
+      var url = '/save-items';
       $.ajax({
         type: 'POST',
-        url: "{{route('saveItems')}}",
-        contentType: 'application/json',
-        data: JSON.stringify(productsData),
+        url: url,
+        data: formData,
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
         success: function(response) {
           console.log(response);
-          displayProducts();
+          displayProducts(response.products);
           $('#productForm')[0].reset();
         },
         error: function(xhr, status, error) {
@@ -42,12 +24,13 @@ $(document).ready(function() {
       });
     });
 
-    function displayProducts() {
-      productList.empty();
-      productsData.sort((a, b) => new Date(b.datetime) - new Date(a.datetime));
+    let total = 0;
 
-      productsData.forEach(product => {
-        const row = $('<div class="row border-bottom py-2"></div>');
+    function displayProducts(products) {
+      productList.empty();
+
+      products.forEach(product => {
+        var row = $('<div class="row border-bottom py-2"></div>');
 
         const columns = [
           { name: 'productName', label: 'Product Name' },
@@ -58,11 +41,19 @@ $(document).ready(function() {
         ];
 
         columns.forEach(column => {
-          const cell = $(`<div class="col">${product[column.name]}</div>`);
-          row.append(cell);
+          const r = $(`<div class="col">${product[column.name]}</div>`);
+          total += parseFloat(product['totalValue']);
+          row.append(r);
         });
 
         productList.append(row);
       });
+
+      //last row
+      row = $('<div class="row border-bottom py-2 justify-content-end"></div>');
+      var col = $(`<div class="col">Total Values: ${parseFloat(total)}</div>`);
+      row.append(col);
+      productList.append(row);
+
     }
   });

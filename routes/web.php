@@ -20,6 +20,6 @@ Route::get('/', function () {
 
 
 Route::controller(HomeController::class)->group(function () {
-    Route::get('save-items', 'store')->name('saveItems');
+    Route::post('save-items', 'store')->name('saveItems');
 });
 

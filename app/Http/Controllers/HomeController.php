@@ -18,7 +18,7 @@ class HomeController extends Controller
             'productName' => $request->productName,
             'quantity' => $request->quantity,
             'price' => $request->price,
-            'datetime' => now()->toIso8601String(),
+            'datetime' => date('Y-m-d H:i:s'),
             'totalValue' => $request->quantity * $request->price,
         ];
 
